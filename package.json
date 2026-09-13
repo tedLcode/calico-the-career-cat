@@ -1,0 +1,20 @@
+{
+  "name": "jobhunt",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "init-db": "node scripts/init-db.js",
+    "fetch:test": "node scripts/fetch-test.js",
+    "resolve": "node scripts/resolve-company.js",
+    "test": "node --test src/**/*.test.js",
+    "start": "node src/run.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.3.0",
+    "dotenv": "^16.4.5"
+  }
+}

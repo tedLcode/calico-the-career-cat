@@ -1,0 +1,7 @@
+Vercel
+Supabase
+Linear
+PostHog
+Ashby
+Deel
+Turing

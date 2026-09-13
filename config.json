@@ -1,0 +1,57 @@
+{
+  "notify_threshold": 60,
+  "locations": ["chennai", "bengaluru", "bangalore", "hyderabad"],
+  "remote_requires_country": "india",
+  "hard_reject_title": ["senior", "sr.", "staff", "principal", "lead", "manager", "director", "head of", "architect", "vp", "intern", "sdet"],
+  "max_years_experience": 1,
+  "tracks": {
+    "DE": {
+      "title": [
+        "data engineer",
+        "associate data engineer",
+        "junior data engineer",
+        "data engineer i",
+        "software engineer - data",
+        "software engineer, data",
+        "data platform engineer",
+        "etl engineer",
+        "elt engineer",
+        "etl/elt engineer",
+        "cloud data engineer",
+        "application developer",
+        "programmer analyst",
+        "technology analyst"
+      ],
+      "skills_core": ["python", "sql", "postgresql", "aurora", "aws", "etl", "elt", "data pipeline", "data integration"],
+      "skills_secondary": [
+        "pl/pgsql", "snowflake", "lambda", "s3", "sqs", "secrets manager", "cloudformation", "terraform",
+        "metadata-driven", "configuration-driven", "data modeling", "schema design", "lineage", "idempotent",
+        "sftp", "control-m", "jenkins", "git", "github", "ci/cd", "file processing", "payment processing",
+        "bank statement", "archive processing", "serverless", "event-driven", "jira", "servicenow",
+        "neo4j", "cypher", "graph data science"
+      ]
+    },
+    "SWE": {
+      "title": [
+        "software engineer", "software engineer i", "sde-1", "sde 1", "sde i",
+        "associate software engineer", "backend engineer", "junior backend engineer",
+        "platform engineer", "application developer", "programmer analyst", "technology analyst"
+      ],
+      "skills_core": ["python", "java", "sql", "rest api", "postgresql"],
+      "skills_secondary": [
+        "angular", "lambda", "s3", "sqs", "secrets manager", "serverless", "event-driven",
+        "aurora", "snowflake", "database design", "schema design", "unit testing", "system design",
+        "sonarqube", "refactoring", "jenkins", "git", "github", "ci/cd", "cloudformation", "vault",
+        "control-m", "jira", "servicenow", "production support", "release management", "change management"
+      ]
+    }
+  },
+  "scoring_bands": {
+    "75": "strong match - apply immediately",
+    "65": "good match",
+    "60": "review manually",
+    "0": "below threshold - not notified"
+  },
+  "de_priority_bonus": 5,
+  "company_tier_bonus": { "1": 10 }
+}
