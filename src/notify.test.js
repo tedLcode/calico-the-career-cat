@@ -74,7 +74,8 @@ test('processCallbacks applies a status change from a callback_query and advance
   }
 });
 
-test('sendDigest caps at 10, sends an overflow notice, and escapes MarkdownV2 special characters', async () => {
+test('sendDigest sends every job after a header, and escapes MarkdownV2 special characters', async () => {
+  process.env.TELEGRAM_MESSAGE_GAP_MS = '0';
   const jobs = Array.from({ length: 12 }, (_, i) => ({
     id: `job-${i}`,
     title: i === 0 ? 'C++ Engineer (Fintech)! [urgent]' : `Job ${i}`,
@@ -92,16 +93,48 @@ test('sendDigest caps at 10, sends an overflow notice, and escapes MarkdownV2 sp
       const ids = await sendDigest(jobs);
 
       const sendMessageCalls = calls.filter((c) => c.url.includes('sendMessage'));
-      // 10 digest messages + 1 overflow "+2 more" message
-      assert.equal(sendMessageCalls.length, 11);
-      assert.equal(ids.length, 10);
+      // 1 header + one message per job — no cap
+      assert.equal(sendMessageCalls.length, 13);
+      assert.equal(ids.length, 12);
 
-      const firstBody = JSON.parse(sendMessageCalls[0].options.body);
-      const firstLine = firstBody.text.split('\n')[0];
+      const header = JSON.parse(sendMessageCalls[0].options.body);
+      assert.equal(header.text, '📬 12 new jobs · 12 in Chennai');
+
+      const firstJobBody = JSON.parse(sendMessageCalls[1].options.body);
+      const firstLine = firstJobBody.text.split('\n')[0];
       assert.equal(firstLine, '*C\\+\\+ Engineer \\(Fintech\\)\\! \\[urgent\\]*');
+    }
+  );
+});
 
-      const overflowBody = JSON.parse(sendMessageCalls[10].options.body);
-      assert.equal(overflowBody.text, '+2 more in the queue');
+test('sendDigest retries after a Telegram 429 instead of dropping the job', async () => {
+  process.env.TELEGRAM_MESSAGE_GAP_MS = '0';
+  let jobSends = 0;
+
+  await withMockFetch(
+    (url, options) => {
+      const body = JSON.parse(options.body);
+      if (!body.reply_markup) return jsonResponse({ ok: true }); // header message
+      jobSends++;
+      return jsonResponse(
+        jobSends === 1 ? { ok: false, error_code: 429, parameters: { retry_after: 0 } } : { ok: true }
+      );
+    },
+    async () => {
+      const ids = await sendDigest([
+        {
+          id: 'job-429',
+          title: 'Retry Job',
+          company: 'Test.Co',
+          location: 'Chennai',
+          track: 'DE',
+          score: 80,
+          url: 'https://example.com',
+          posted_at: new Date().toISOString(),
+        },
+      ]);
+      assert.deepEqual(ids, ['job-429']);
+      assert.equal(jobSends, 2);
     }
   );
 });
@@ -125,6 +158,72 @@ test('sendDigest does not mark a job notified if the Telegram send fails', async
     async () => {
       const ids = await sendDigest(jobs);
       assert.deepEqual(ids, []);
+    }
+  );
+});
+
+function testJob(id) {
+  return {
+    id,
+    title: 'Network Job',
+    company: 'Test.Co',
+    location: 'Chennai',
+    track: 'DE',
+    score: 80,
+    url: 'https://example.com',
+    posted_at: new Date().toISOString(),
+  };
+}
+
+test('sendDigest retries a dropped connection instead of crashing', async () => {
+  process.env.TELEGRAM_MESSAGE_GAP_MS = '0';
+  process.env.TELEGRAM_RETRY_BASE_MS = '0';
+  let jobSends = 0;
+
+  await withMockFetch(
+    (url, options) => {
+      const body = JSON.parse(options.body);
+      if (!body.reply_markup) return jsonResponse({ ok: true }); // header message
+      jobSends++;
+      if (jobSends === 1) throw new TypeError('fetch failed'); // simulated ECONNRESET
+      return jsonResponse({ ok: true });
+    },
+    async () => {
+      const ids = await sendDigest([testJob('job-net-1')]);
+      assert.deepEqual(ids, ['job-net-1']);
+      assert.equal(jobSends, 2);
+    }
+  );
+});
+
+test('sendDigest stops cleanly and keeps jobs queued when Telegram stays unreachable', async () => {
+  process.env.TELEGRAM_MESSAGE_GAP_MS = '0';
+  process.env.TELEGRAM_RETRY_BASE_MS = '0';
+  let attempts = 0;
+
+  await withMockFetch(
+    () => {
+      attempts++;
+      throw new TypeError('fetch failed');
+    },
+    async () => {
+      const ids = await sendDigest([testJob('job-net-a'), testJob('job-net-b'), testJob('job-net-c'), testJob('job-net-d')]);
+      assert.deepEqual(ids, []);
+      // header (3 tries) + two jobs (3 tries each), then it gives up instead of hammering the rest
+      assert.equal(attempts, 9);
+    }
+  );
+});
+
+test('processCallbacks does not crash the run when Telegram is unreachable', async () => {
+  const before = getMeta('tg_offset');
+  await withMockFetch(
+    () => {
+      throw new TypeError('fetch failed');
+    },
+    async () => {
+      await processCallbacks();
+      assert.equal(getMeta('tg_offset'), before);
     }
   );
 });

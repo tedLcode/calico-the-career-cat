@@ -2,7 +2,27 @@
   "notify_threshold": 60,
   "locations": ["chennai", "bengaluru", "bangalore", "hyderabad"],
   "remote_requires_country": "india",
-  "hard_reject_title": ["senior", "sr.", "staff", "principal", "lead", "manager", "director", "head of", "architect", "vp", "intern", "sdet"],
+  "hard_reject_title": ["senior", "sr.", "principal", "lead", "manager", "director", "head of", "architect", "vp", "sdet", "mid-level", "mid level", "intermediate", "vice president", "officer"],
+  "hard_reject_title_patterns": [
+    "\\b(ii|iii|iv)\\b",
+    "\\b(sde|engineer|developer|analyst)[\\s-]*[2-9]\\b",
+    "\\blevel[\\s-]*[2-9]\\b",
+    "(?<!technical )\\bstaff\\b",
+    "\\bintern(ship)?s?\\b"
+  ],
+  "entry_level_title_patterns": [
+    "\\b(associate|junior|jr|graduate|entry[\\s-]level|new[\\s-]grad|trainee|fresher|early[\\s-]career)\\b",
+    "\\b(engineer|developer|sde)[\\s-]*(i|1)\\b"
+  ],
+  "entry_level_bonus": 10,
+  "off_profile_title_patterns": [
+    "\\b(ios|android|flutter|react native|kotlin)\\b",
+    "\\b(sap|abap|salesforce|dynamics 365|mainframe|cobol)\\b",
+    "\\b(front[\\s-]?end|ui|ux|designer)\\b",
+    "\\b(qa|quality assurance|test engineer|testing)\\b",
+    "\\b(embedded|firmware|hardware|vlsi|rtl|asic|fpga|qual)\\b"
+  ],
+  "location_bonus": { "chennai": 15 },
   "max_years_experience": 1,
   "max_posting_age_days": 7,
   "tracks": {
@@ -19,6 +39,11 @@
         "elt engineer",
         "etl/elt engineer",
         "cloud data engineer",
+        "etl developer",
+        "data developer",
+        "sql developer",
+        "spark developer",
+        "big data",
         "application developer",
         "programmer analyst",
         "technology analyst"
@@ -36,7 +61,9 @@
       "title": [
         "software engineer", "software engineer i", "sde-1", "sde 1", "sde i",
         "associate software engineer", "backend engineer", "junior backend engineer",
-        "platform engineer", "application developer", "programmer analyst", "technology analyst"
+        "platform engineer", "application developer", "programmer analyst", "technology analyst",
+        "software development engineer", "member of technical staff",
+        "backend developer", "python developer", "java developer"
       ],
       "skills_core": ["python", "java", "sql", "rest api", "postgresql"],
       "skills_secondary": [

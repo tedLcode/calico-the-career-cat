@@ -2,16 +2,24 @@ import 'dotenv/config';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { upsertJob, getPendingDigest } from './db.js';
+import { upsertJob, getPendingDigest, markDelisted } from './db.js';
 import { makeId } from './normalize.js';
-import { scoreJob } from './score.js';
+import { scoreJob, titleRejectReason } from './score.js';
 import { processCallbacks, sendDigest, sendText } from './notify.js';
 import { fetchGreenhouse } from './fetchers/greenhouse.js';
 import { fetchLever } from './fetchers/lever.js';
 import { fetchAshby } from './fetchers/ashby.js';
+import { fetchWorkday } from './fetchers/workday.js';
+import { fetchSmartRecruiters } from './fetchers/smartrecruiters.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const FETCHERS = { greenhouse: fetchGreenhouse, lever: fetchLever, ashby: fetchAshby };
+const FETCHERS = {
+  greenhouse: (c) => fetchGreenhouse(c.token),
+  lever: (c) => fetchLever(c.token),
+  ashby: (c) => fetchAshby(c.token),
+  workday: (c, opts) => fetchWorkday(c, opts),
+  smartrecruiters: (c, opts) => fetchSmartRecruiters(c, opts),
+};
 
 // Score against the full description (skill/experience keywords can appear
 // anywhere in a long JD), but only persist a short snippet — the DB is
@@ -31,14 +39,17 @@ async function main() {
 
   const companies = loadJson('companies.json');
   const config = loadJson('config.json');
+  const skipTitle = (title) => titleRejectReason(title, config) !== null;
 
+  const runStart = new Date().toISOString();
+  const fetchedCompanies = [];
   let fetched = 0;
   let newCount = 0;
   let errors = 0;
 
   for (const company of companies) {
     try {
-      const rawJobs = await FETCHERS[company.ats](company.token);
+      const rawJobs = await FETCHERS[company.ats](company, { skipTitle });
       const now = new Date().toISOString();
 
       for (const raw of rawJobs) {
@@ -59,6 +70,7 @@ async function main() {
         });
         if (wasNew) newCount++;
       }
+      fetchedCompanies.push(company.name);
     } catch (err) {
       console.log(`WARN  ${company.name}: ${err.message}`);
       errors++;
@@ -66,10 +78,14 @@ async function main() {
     await sleep(400);
   }
 
+  const delisted = markDelisted(fetchedCompanies, runStart);
+
   const pending = getPendingDigest(1000).filter((job) => job.score >= config.notify_threshold);
   const notifiedIds = await sendDigest(pending);
 
-  console.log(`fetched=${fetched} new=${newCount} notified=${notifiedIds.length} errors=${errors}`);
+  console.log(
+    `fetched=${fetched} new=${newCount} notified=${notifiedIds.length} queued=${pending.length - notifiedIds.length} delisted=${delisted} errors=${errors}`
+  );
 }
 
 main().catch(async (err) => {

@@ -26,14 +26,40 @@ function daysSince(isoDate) {
   return (Date.now() - then) / 86400000;
 }
 
+function compile(patterns) {
+  return (patterns ?? []).map((p) => new RegExp(p, 'i'));
+}
+
+function titleTrackHits(title, config) {
+  return {
+    de: config.tracks.DE.title.some((kw) => title.includes(kw)),
+    swe: config.tracks.SWE.title.some((kw) => title.includes(kw)),
+  };
+}
+
+// Every rule that can be decided from the title alone. Exported so fetchers
+// can skip these postings before paying for a description request.
+export function titleRejectReason(rawTitle, config) {
+  const title = (rawTitle || '').toLowerCase();
+  if (config.hard_reject_title.some((kw) => title.includes(kw))) return 'title matches hard-reject list';
+  if (compile(config.hard_reject_title_patterns).some((re) => re.test(title))) return 'title is not an entry-level role';
+
+  const { de, swe } = titleTrackHits(title, config);
+  // Location/tier/entry-level bonuses would otherwise lift non-engineering
+  // titles (sales, support) over the notify threshold on their own.
+  if (!de && !swe) return 'title is not a DE/SWE role';
+
+  if (compile(config.off_profile_title_patterns).some((re) => re.test(title))) return 'title outside DE/backend profile';
+  return null;
+}
+
 export function scoreJob(job, config) {
   const title = (job.title || '').toLowerCase();
   const location = (job.location || '').toLowerCase();
   const description = job.description || '';
 
-  if (config.hard_reject_title.some((kw) => title.includes(kw))) {
-    return { score: 0, track: 'NONE', reject_reason: 'title matches hard-reject list' };
-  }
+  const titleReason = titleRejectReason(title, config);
+  if (titleReason) return { score: 0, track: 'NONE', reject_reason: titleReason };
 
   const minYears = parseMinYearsExperience(description);
   if (minYears !== null && minYears > config.max_years_experience) {
@@ -59,13 +85,8 @@ export function scoreJob(job, config) {
     };
   }
 
-  const deTitleHit = config.tracks.DE.title.some((kw) => title.includes(kw));
-  const sweTitleHit = config.tracks.SWE.title.some((kw) => title.includes(kw));
-
-  let track = 'NONE';
-  if (deTitleHit && sweTitleHit) track = 'BOTH';
-  else if (deTitleHit) track = 'DE';
-  else if (sweTitleHit) track = 'SWE';
+  const { de: deTitleHit, swe: sweTitleHit } = titleTrackHits(title, config);
+  const track = deTitleHit && sweTitleHit ? 'BOTH' : deTitleHit ? 'DE' : 'SWE';
 
   let score = 25; // locationOk already confirmed above
 
@@ -91,6 +112,11 @@ export function scoreJob(job, config) {
 
   const tierBonus = config.company_tier_bonus?.[String(job.tier)];
   if (tierBonus) score += tierBonus;
+
+  const locationBonus = Object.entries(config.location_bonus ?? {}).find(([loc]) => location.includes(loc));
+  if (locationBonus) score += locationBonus[1];
+
+  if (compile(config.entry_level_title_patterns).some((re) => re.test(title))) score += config.entry_level_bonus ?? 0;
 
   return { score, track, reject_reason: null };
 }

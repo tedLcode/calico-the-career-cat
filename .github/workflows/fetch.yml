@@ -1,8 +1,10 @@
 name: fetch-jobs
 on:
   schedule:
-    - cron: '0 3 * * *'    # 08:30 IST
-    - cron: '30 14 * * *'  # 20:00 IST
+    # Off the top of the hour on purpose: GitHub delays or drops scheduled
+    # runs under load, and load peaks at :00.
+    - cron: '17 3 * * *'   # 08:47 IST
+    - cron: '47 14 * * *'  # 20:17 IST
   workflow_dispatch:
 
 permissions:

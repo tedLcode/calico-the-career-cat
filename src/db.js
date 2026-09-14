@@ -102,6 +102,20 @@ export function markNotified(ids) {
   ).run(now, ...ids);
 }
 
+// A pending job that a successfully-fetched company didn't return this run has
+// been taken down (or aged past the fetcher's pre-filter), so keep it out of
+// the digest. Companies whose fetch failed are left alone.
+export function markDelisted(companies, seenSince) {
+  if (!companies || companies.length === 0) return 0;
+  const placeholders = companies.map(() => '?').join(',');
+  return db
+    .prepare(
+      `UPDATE jobs SET reject_reason = 'no longer listed'
+       WHERE status = 'new' AND reject_reason IS NULL AND last_seen_at < ? AND company IN (${placeholders})`
+    )
+    .run(seenSince, ...companies).changes;
+}
+
 export function setStatus(id, status) {
   if (status === 'applied') {
     db.prepare(`UPDATE jobs SET status = ?, applied_at = ? WHERE id = ?`).run(
