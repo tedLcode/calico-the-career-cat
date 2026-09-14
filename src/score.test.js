@@ -136,6 +136,33 @@ test('Data Engineer II requiring 3+ years mandatory is rejected on experience, n
   assert.match(reject_reason, /experience/);
 });
 
+test('posting older than the 7-day cutoff is rejected', () => {
+  const tenDaysAgo = new Date(Date.now() - 10 * 86400000).toISOString();
+  const { reject_reason } = scoreJob(
+    job({ title: 'Data Engineer', location: 'Chennai', posted_at: tenDaysAgo }),
+    config
+  );
+  assert.ok(reject_reason);
+  assert.match(reject_reason, /days ago/);
+});
+
+test('posting within the 7-day cutoff is not rejected', () => {
+  const twoDaysAgo = new Date(Date.now() - 2 * 86400000).toISOString();
+  const { reject_reason } = scoreJob(
+    job({ title: 'Data Engineer', location: 'Chennai', posted_at: twoDaysAgo }),
+    config
+  );
+  assert.equal(reject_reason, null);
+});
+
+test('unknown posting date is not rejected', () => {
+  const { reject_reason } = scoreJob(
+    job({ title: 'Data Engineer', location: 'Chennai', posted_at: null }),
+    config
+  );
+  assert.equal(reject_reason, null);
+});
+
 test('Data Engineer II accepting 0-2 years passes since title itself is not hard-rejected', () => {
   const { reject_reason, track } = scoreJob(
     job({

@@ -4,6 +4,7 @@
   "remote_requires_country": "india",
   "hard_reject_title": ["senior", "sr.", "staff", "principal", "lead", "manager", "director", "head of", "architect", "vp", "intern", "sdet"],
   "max_years_experience": 1,
+  "max_posting_age_days": 7,
   "tracks": {
     "DE": {
       "title": [

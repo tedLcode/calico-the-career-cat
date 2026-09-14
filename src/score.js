@@ -50,6 +50,15 @@ export function scoreJob(job, config) {
     return { score: 0, track: 'NONE', reject_reason: 'location not in allowed list' };
   }
 
+  const daysOld = job.posted_at ? daysSince(job.posted_at) : null;
+  if (daysOld !== null && config.max_posting_age_days != null && daysOld > config.max_posting_age_days) {
+    return {
+      score: 0,
+      track: 'NONE',
+      reject_reason: `posted ${Math.floor(daysOld)} days ago, older than the ${config.max_posting_age_days}-day cutoff`,
+    };
+  }
+
   const deTitleHit = config.tracks.DE.title.some((kw) => title.includes(kw));
   const sweTitleHit = config.tracks.SWE.title.some((kw) => title.includes(kw));
 
@@ -71,10 +80,9 @@ export function scoreJob(job, config) {
   for (const kw of secondarySkills) if (lowerDescription.includes(kw)) skillPoints += 2;
   score += Math.min(skillPoints, 30);
 
-  const days = job.posted_at ? daysSince(job.posted_at) : null;
-  if (days !== null) {
-    if (days <= 7) score += 15;
-    else if (days <= 30) score += 5;
+  if (daysOld !== null) {
+    if (daysOld <= 2) score += 15;
+    else score += 5; // 3-7 days old — anything older was already rejected above
   }
 
   if (track === 'DE' || track === 'BOTH') {
