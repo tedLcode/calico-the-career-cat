@@ -34,6 +34,12 @@ function loadJson(name) {
   return JSON.parse(fs.readFileSync(path.join(__dirname, '..', name), 'utf8'));
 }
 
+function loadContacts() {
+  const file = path.join(__dirname, '..', 'referrals.json');
+  if (!fs.existsSync(file)) return [];
+  return JSON.parse(fs.readFileSync(file, 'utf8')).contacts ?? [];
+}
+
 async function main() {
   await processCallbacks();
 
@@ -81,7 +87,7 @@ async function main() {
   const delisted = markDelisted(fetchedCompanies, runStart);
 
   const pending = getPendingDigest(1000).filter((job) => job.score >= config.notify_threshold);
-  const notifiedIds = await sendDigest(pending);
+  const notifiedIds = await sendDigest(pending, { sections: config.digest_sections ?? [], contacts: loadContacts() });
 
   console.log(
     `fetched=${fetched} new=${newCount} notified=${notifiedIds.length} queued=${pending.length - notifiedIds.length} delisted=${delisted} errors=${errors}`

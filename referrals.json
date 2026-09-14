@@ -1,0 +1,5 @@
+{
+  "_format": "One entry per person who could refer you. 'company' must match the company name in companies.json (case doesn't matter). 'relation' and 'linkedin' are optional.",
+  "_example": { "name": "Ravi K", "company": "Visa", "relation": "college senior", "linkedin": "https://www.linkedin.com/in/..." },
+  "contacts": []
+}

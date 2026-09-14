@@ -98,7 +98,7 @@ test('sendDigest sends every job after a header, and escapes MarkdownV2 special 
       assert.equal(ids.length, 12);
 
       const header = JSON.parse(sendMessageCalls[0].options.body);
-      assert.equal(header.text, '📬 12 new jobs · 12 in Chennai');
+      assert.equal(header.text, '📬 12 new jobs');
 
       const firstJobBody = JSON.parse(sendMessageCalls[1].options.body);
       const firstLine = firstJobBody.text.split('\n')[0];
@@ -211,6 +211,84 @@ test('sendDigest stops cleanly and keeps jobs queued when Telegram stays unreach
       assert.deepEqual(ids, []);
       // header (3 tries) + two jobs (3 tries each), then it gives up instead of hammering the rest
       assert.equal(attempts, 9);
+    }
+  );
+});
+
+const SECTIONS = [
+  { label: 'Chennai', match: ['chennai'] },
+  { label: 'Bengaluru', match: ['bengaluru', 'bangalore'] },
+  { label: 'Hyderabad', match: ['hyderabad'] },
+  { label: 'Remote (India)', match: ['remote'] },
+];
+
+function sentTexts(calls) {
+  return calls.filter((c) => c.url.includes('sendMessage')).map((c) => JSON.parse(c.options.body).text);
+}
+
+test('sendDigest groups jobs by city in priority order and says when a city has none', async () => {
+  process.env.TELEGRAM_MESSAGE_GAP_MS = '0';
+  const jobs = [
+    { ...testJob('j-blr-1'), title: 'BLR One', location: 'Bangalore, India' },
+    { ...testJob('j-hyd'), title: 'HYD One', location: 'Hyderabad, India' },
+    { ...testJob('j-multi'), title: 'Multi', location: 'Bengaluru; Chennai' },
+    { ...testJob('j-blr-2'), title: 'BLR Two', location: 'Bengaluru, India' },
+  ];
+
+  await withMockFetch(
+    () => jsonResponse({ ok: true }),
+    async (calls) => {
+      const ids = await sendDigest(jobs, { sections: SECTIONS });
+      assert.equal(ids.length, 4);
+      assert.deepEqual(
+        sentTexts(calls).map((t) => t.split('\n')[0]),
+        [
+          '📬 4 new jobs — Chennai 1 · Bengaluru 2 · Hyderabad 1 · Remote (India) 0',
+          '📍 Chennai — 1 job',
+          '*Multi*',
+          '📍 Bengaluru — 2 jobs',
+          '*BLR One*',
+          '*BLR Two*',
+          '📍 Hyderabad — 1 job',
+          '*HYD One*',
+          '📍 Remote (India) — no new jobs',
+        ]
+      );
+    }
+  );
+});
+
+test('sendDigest reports a no-jobs run per city instead of staying silent', async () => {
+  await withMockFetch(
+    () => jsonResponse({ ok: true }),
+    async (calls) => {
+      const ids = await sendDigest([], { sections: SECTIONS });
+      assert.deepEqual(ids, []);
+      assert.deepEqual(sentTexts(calls), [
+        '📬 No new jobs this run — Chennai 0 · Bengaluru 0 · Hyderabad 0 · Remote (India) 0',
+      ]);
+    }
+  );
+});
+
+test('sendDigest ends with a referral check: saved contacts first, a LinkedIn search link otherwise', async () => {
+  process.env.TELEGRAM_MESSAGE_GAP_MS = '0';
+  const jobs = [
+    { ...testJob('j-adobe'), company: 'Adobe', location: 'Bengaluru' },
+    { ...testJob('j-visa'), company: 'Visa', location: 'Bengaluru' },
+  ];
+  const contacts = [{ name: 'Ravi', company: 'visa', relation: 'college senior' }];
+
+  await withMockFetch(
+    () => jsonResponse({ ok: true }),
+    async (calls) => {
+      await sendDigest(jobs, { contacts });
+      const last = sentTexts(calls).at(-1);
+      assert.match(last, /Referral check/);
+      assert.match(last, /Visa \(1 job\): ask Ravi \(college senior\)/);
+      assert.match(last, /Adobe \(1 job\): no saved contact/);
+      assert.match(last, /linkedin\.com\/search\/results\/people\/\?keywords=Adobe/);
+      assert.ok(last.indexOf('Visa') < last.indexOf('Adobe'), 'companies with a saved contact come first');
     }
   );
 });

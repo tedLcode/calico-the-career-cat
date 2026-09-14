@@ -23,6 +23,12 @@
     "\\b(embedded|firmware|hardware|vlsi|rtl|asic|fpga|qual)\\b"
   ],
   "location_bonus": { "chennai": 15 },
+  "digest_sections": [
+    { "label": "Chennai", "match": ["chennai"] },
+    { "label": "Bengaluru", "match": ["bengaluru", "bangalore"] },
+    { "label": "Hyderabad", "match": ["hyderabad"] },
+    { "label": "Remote (India)", "match": ["remote"] }
+  ],
   "max_years_experience": 1,
   "max_posting_age_days": 7,
   "tracks": {
