@@ -17,6 +17,8 @@ These don't publish a machine-readable job feed the pipeline can use (Oracle HCM
 | LatentView | Naukri / company site | Chennai data-analytics firm; DE roles from ~1 yr |
 | Tiger Analytics | tigeranalytics.com/careers | Chennai HQ analytics; its Workable board is mostly US roles |
 | Hexagon | careers.hexagon.com | Chennai presence |
+| Virtusa | virtusapolaris.referrals.selectminds.com | Chennai IT-services major; SelectMinds portal, not a supported ATS |
+| Prodapt | careerspna-prodapt.icims.com | Chennai/Bangalore telecom-software firm; iCIMS portal, not a supported ATS |
 
 ## Bangalore / Hyderabad / multi-city
 
