@@ -439,5 +439,8 @@
   { "name": "Harness", "ats": "greenhouse", "token": "harnessinc", "tier": 2 },
   { "name": "Commvault", "ats": "greenhouse", "token": "commvault", "tier": 2 },
   { "name": "YugabyteDB", "ats": "greenhouse", "token": "yugabyte", "tier": 2 },
-  { "name": "StarTree", "ats": "greenhouse", "token": "startree", "tier": 2 }
+  { "name": "StarTree", "ats": "greenhouse", "token": "startree", "tier": 2 },
+  { "name": "Druva", "ats": "greenhouse", "token": "druva", "tier": 1 },
+  { "name": "Sahaj Software", "ats": "greenhouse", "token": "sahajsoftware", "tier": 1 },
+  { "name": "Thoughtworks", "ats": "ashby", "token": "thoughtworks", "tier": 1 }
 ]

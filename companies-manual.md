@@ -19,6 +19,10 @@ These don't publish a machine-readable job feed the pipeline can use (Oracle HCM
 | Hexagon | careers.hexagon.com | Chennai presence |
 | Virtusa | virtusapolaris.referrals.selectminds.com | Chennai IT-services major; SelectMinds portal, not a supported ATS |
 | Prodapt | careerspna-prodapt.icims.com | Chennai/Bangalore telecom-software firm; iCIMS portal, not a supported ATS |
+| SurveySparrow | surveysparrow.keka.com/careers | Chennai SaaS; Keka portal, not a supported ATS |
+| Ramco Systems | ramco.com/careers | Chennai HQ enterprise software; custom portal |
+| BankBazaar | bankbazaar.com/careers.html | Chennai fintech; custom portal |
+| Kaleidofin | kaleidofin.com/careers | Chennai fintech; roles listed via Instahyre |
 
 ## Bangalore / Hyderabad / multi-city
 
@@ -37,6 +41,16 @@ These don't publish a machine-readable job feed the pipeline can use (Oracle HCM
 | Nutanix | careers.nutanix.com/en/jobs | |
 | Chubb | about.chubb.com/careers | India engineering centre |
 | Innovaccer | innovaccer.com/careers | Its Greenhouse board now returns 404 |
+| Perfios | perfios.ai/careers | Fintech; Darwinbox portal, not a supported ATS |
+| Cashfree Payments | cashfree.com/careers | Payments; Kula portal |
+| Setu (Pine Labs) | setu.co/careers | Payments APIs; custom portal |
+| Signzy | signzy.keka.com/careers | Keka portal, not a supported ATS |
+| Zerodha | careers.zerodha.com | Custom portal |
+| FinBox | finbox.in/careers | Custom portal |
+| Smallcase | smallcase.com/careers | Site blocked automated checks; browse by hand |
+| Soliton Technologies | solitontech.com/careers | Engineering firm; custom portal |
+| Whatfix | whatfix.com/careers | Its SmartRecruiters feed holds only a "test" posting, so browse the site |
+| LeadSquared | leadsquared.com/careers | Site blocks automated checks; browse by hand |
 | PhonePe, Juspay, Darwinbox, Thoughtspot, DE Shaw | company careers pages | Custom portals |
 | MoEngage | moengage.hire.trakstar.com | Trakstar |
 | Clevertap | careers.kula.ai/clevertap | Kula |
